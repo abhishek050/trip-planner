@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:root@localhost:3306/trip_planner"
+}
+
+model cities {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(100)
+  state       String?   @db.VarChar(100)
+  country     String?   @default("India") @db.VarChar(100)
+  description String?   @db.Text
+  latitude    Decimal?  @db.Decimal(10, 8)
+  longitude   Decimal?  @db.Decimal(11, 8)
+  image_url   String?   @db.Text
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  places      places[]
+  itineraries itineraries[]
+}
+
+model place_images {
+  id         Int       @id @default(autoincrement())
+  place_id   Int
+  image_url  String    @db.Text
+  is_primary Boolean?  @default(false)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  places     places    @relation(fields: [place_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "place_images_ibfk_1")
+
+  @@index([place_id], map: "place_id")
+}
+
+model places {
+  id              Int            @id @default(autoincrement())
+  city_id         Int
+  name            String         @db.VarChar(255)
+  type            places_type
+  category        String?        @db.VarChar(100)
+  description     String?        @db.Text
+  google_maps_url String?        @db.Text
+  rating          Decimal?       @db.Decimal(2, 1)
+  review_count    Int?
+  price_level     Int?           @db.TinyInt
+  average_cost    Int?
+  latitude        Decimal?       @db.Decimal(10, 8)
+  longitude       Decimal?       @db.Decimal(11, 8)
+  area            String?        @db.VarChar(150)
+  is_featured     Boolean?       @default(false)
+  created_at      DateTime?      @default(now()) @db.Timestamp(0)
+  place_images    place_images[]
+  cities          cities         @relation(fields: [city_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "places_ibfk_1")
+
+  @@index([city_id], map: "city_id")
+}
+
+enum places_type {
+  attraction
+  restaurant
+  hidden_gem
+  bar
+  cafe
+  activity
+}
+
+model itineraries {
+  id         Int      @id @default(autoincrement())
+  city_id    Int
+  budget     Int
+  duration   Int
+  persons    Int
+  themes     String
+  json_data  Json
+  created_at DateTime @default(now())
+
+  cities cities @relation(fields: [city_id], references: [id])
+}
