@@ -9,15 +9,17 @@ datasource db {
 
 model cities {
   id          Int       @id @default(autoincrement())
-  name        String    @db.VarChar(100)
-  state       String?   @db.VarChar(100)
-  country     String?   @default("India") @db.VarChar(100)
-  description String?   @db.Text
-  latitude    Decimal?  @db.Decimal(10, 8)
-  longitude   Decimal?  @db.Decimal(11, 8)
-  image_url   String?   @db.Text
-  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  name        String    @unique
+  state       String?
+  country     String?
+  description String?
+  latitude    Float?
+  longitude   Float?
+  image_url   String? @db.Text
+  created_at  DateTime?
+
   places      places[]
+  stays       stays[]
   itineraries itineraries[]
 }
 
@@ -75,4 +77,32 @@ model itineraries {
   created_at DateTime @default(now())
 
   cities cities @relation(fields: [city_id], references: [id])
+}
+
+model stays {
+  id                Int      @id @default(autoincrement())
+  city_id           Int
+  name              String
+  type              String
+  area              String?
+  description       String?  @db.Text
+  rating            Float?
+  review_count      Int?
+  cleanliness_score Float?
+  price_per_night   Int
+  latitude          Float?
+  longitude         Float?
+  google_maps_url   String?  @db.Text
+  // Stores the raw Google Places photo reference string.
+  // Never expires. Used by route.ts to rebuild a fresh image URL
+  // server-side on every response, without re-calling the Places API.
+  photo_reference   String?  @db.Text
+  // Stores the direct Google Places photo URL (built server-side with API key).
+  // Rebuilt from photo_reference on every response so it stays fresh.
+  image_url         String? @db.Text
+  created_at        DateTime @default(now())
+
+  cities cities @relation(fields: [city_id], references: [id])
+
+  @@unique([city_id, name], name: "city_id_name")
 }
